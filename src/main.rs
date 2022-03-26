@@ -1,19 +1,30 @@
-use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{delete, get, post, put, App, HttpResponse, HttpServer, Responder};
 
-async fn root() -> impl Responder {
-    HttpResponse::Ok().body("Hello world!")
+#[get("/")]
+async fn get() -> impl Responder {
+    HttpResponse::Ok().body("get ok")
 }
-
-async fn index2() -> impl Responder {
-    HttpResponse::Ok().json("{\"message\":\"Hello world again!\"}")
+#[post("/")]
+async fn post() -> impl Responder {
+    HttpResponse::Ok().body("post ok")
+}
+#[put("/")]
+async fn put() -> impl Responder {
+    HttpResponse::Ok().body("put ok")
+}
+#[delete("/")]
+async fn delete() -> impl Responder {
+    HttpResponse::Ok().body("delete ok")
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
-            .route("/", web::get().to(root))
-            .route("/again", web::get().to(index2))
+            .service(get)
+            .service(post)
+            .service(put)
+            .service(delete)
     })
     .bind("127.0.0.1:8088")?
     .run()
