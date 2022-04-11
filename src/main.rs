@@ -1,20 +1,14 @@
-use actix_web::{delete, get, post, put, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{delete, get, post, put, web, App, HttpResponse, HttpServer, Responder, Result};
 use diesel::prelude::*;
-use diesel::r2d2::ConnectionManager;
 use hello_rust::db::establish_connection;
 use hello_rust::model::{NewUser, User};
 use hello_rust::schema::users;
 
-type DbPool = r2d2::Pool<ConnectionManager<MysqlConnection>>;
-
 #[get("/")]
-async fn get() -> impl Responder {
+async fn get() -> Result<impl Responder> {
     let connection = establish_connection();
-    let users = users::dsl::users
-        .filter(users::id.eq(1))
-        .load::<User>(&connection)
-        .expect("error");
-    HttpResponse::Ok(users)
+    let users = users::table.load::<User>(&connection).expect("error");
+    Ok(web::Json(users))
 }
 
 #[post("/")]
@@ -42,14 +36,8 @@ async fn delete() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let connection = establish_connection();
-    let pool = r2d2::Pool::builder()
-        .build(manager)
-        .expect("Failed to create pool.");
-
     HttpServer::new(|| {
         App::new()
-            .app_data(web::Data::new(pool.clone()))
             .service(get)
             .service(post)
             .service(put)
