@@ -1,44 +1,78 @@
+use actix_web::web::Data;
 use actix_web::{delete, get, post, put, web, App, HttpResponse, HttpServer, Responder, Result};
 use diesel::prelude::*;
-use hello_rust::db::establish_connection;
+use hello_rust::db::{establish_connection, Pool};
 use hello_rust::model::{NewUser, User};
 use hello_rust::schema::users;
 
-#[get("/")]
-async fn get() -> Result<impl Responder> {
-    let connection = establish_connection();
-    let users = users::table.load::<User>(&connection).expect("error");
+#[get("/users")]
+async fn get(db: web::Data<Pool>) -> Result<impl Responder> {
+    let conn = db.get().unwrap();
+    let users = users::table.load::<User>(&conn).expect("error");
     Ok(web::Json(users))
 }
 
-#[post("/")]
-async fn post(item: web::Json<NewUser>) -> impl Responder {
-    let connection = establish_connection();
+#[get("/users/{id}")]
+async fn find_by_id(db: web::Data<Pool>, path: web::Path<i32>) -> Result<impl Responder> {
+    let conn = db.get().unwrap();
+    let id = path.into_inner();
+    let user = users::table
+        .filter(users::id.eq(id))
+        .load::<User>(&conn)
+        .expect("error");
+
+    Ok(web::Json(user))
+}
+
+#[get("/users/search")]
+async fn search(db: web::Data<Pool>, query: web::Query<User>) -> Result<impl Responder> {
+    let conn = db.get().unwrap();
+    let users = users::table.load::<User>(&conn).expect("error");
+    Ok(web::Json(users))
+}
+
+#[post("/users")]
+async fn post(db: web::Data<Pool>, item: web::Json<NewUser>) -> impl Responder {
+    let conn = db.get().unwrap();
     let new_user = NewUser {
         email: item.email.to_string(),
     };
     diesel::insert_into(users::dsl::users)
         .values(&new_user)
-        .execute(&connection)
+        .execute(&conn)
         .expect("Error saving new post");
     HttpResponse::Created().body("get ok")
 }
 
-#[put("/")]
-async fn put() -> impl Responder {
+#[put("/users")]
+async fn put(db: web::Data<Pool>, item: web::Json<NewUser>) -> impl Responder {
+    let conn = db.get().unwrap();
+    let new_user = NewUser {
+        email: item.email.to_string(),
+    };
+    diesel::insert_into(users::dsl::users)
+        .values(&new_user)
+        .execute(&conn)
+        .expect("Error saving new post");
     HttpResponse::Created().body("get ok")
 }
 
 #[delete("/")]
-async fn delete() -> impl Responder {
+async fn delete(db: web::Data<Pool>) -> impl Responder {
+    let conn = db.get().unwrap();
     HttpResponse::Ok().body("delete ok")
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| {
+    let pool = establish_connection();
+
+    HttpServer::new(move || {
         App::new()
+            .app_data(Data::new(pool.clone()))
             .service(get)
+            .service(find_by_id)
+            .service(search)
             .service(post)
             .service(put)
             .service(delete)
