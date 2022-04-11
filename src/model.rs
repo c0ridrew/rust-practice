@@ -1,18 +1,14 @@
-use diesel::Insertable;
-use diesel::Queryable;
-mod schema;
+use crate::schema::users;
+use serde_derive::Deserialize;
 
-#[derive(diesel::Queryable)]
+#[derive(Queryable, Deserialize)]
 pub struct User {
     pub id: i32,
-    pub title: String,
-    pub body: String,
-    pub published: bool,
+    pub email: String,
 }
 
-#[derive(Insertable)]
+#[derive(Insertable, Deserialize)]
 #[table_name = "users"]
-pub struct NewUser<'a> {
-    pub title: &'a str,
-    pub body: &'a str,
+pub struct NewUser {
+    pub email: String,
 }

@@ -2,5 +2,6 @@
   "rust-analyzer.diagnostics.disabled": [
     "macro-error", "unresolved-macro-call"
   ],
-  "rust-analyzer.procMacro.enable": false
+  "rust-analyzer.procMacro.enable": false,
+  "rust-analyzer.inlayHints.enable": true
 }
