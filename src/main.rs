@@ -1,28 +1,23 @@
-pub mod db;
-pub mod model;
-pub mod schema;
+mod db;
 
 use actix_web::{delete, get, post, put, App, HttpResponse, HttpServer, Responder};
 use db::establish_connection;
-use diesel::deserialize::QueryableByName;
 use diesel::mysql::MysqlConnection;
-use diesel::prelude::*;
-use diesel::sql_query;
 
 #[get("/")]
 async fn get(db: MysqlConnection) -> impl Responder {
     HttpResponse::Ok().body("get ok")
 }
 #[post("/")]
-async fn post() -> impl Responder {
+async fn post(db: MysqlConnection) -> impl Responder {
     HttpResponse::Ok().body("post ok")
 }
 #[put("/")]
-async fn put() -> impl Responder {
+async fn put(db: MysqlConnection) -> impl Responder {
     HttpResponse::Ok().body("put ok")
 }
 #[delete("/")]
-async fn delete() -> impl Responder {
+async fn delete(db: MysqlConnection) -> impl Responder {
     HttpResponse::Ok().body("delete ok")
 }
 

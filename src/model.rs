@@ -1,6 +1,8 @@
-use super::schema::users;
+use diesel::Insertable;
+use diesel::Queryable;
+mod schema;
 
-#[derive(Queryable)]
+#[derive(diesel::Queryable)]
 pub struct User {
     pub id: i32,
     pub title: String,
