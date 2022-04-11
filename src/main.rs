@@ -1,7 +1,16 @@
+pub mod db;
+pub mod model;
+pub mod schema;
+
 use actix_web::{delete, get, post, put, App, HttpResponse, HttpServer, Responder};
+use db::establish_connection;
+use diesel::deserialize::QueryableByName;
+use diesel::mysql::MysqlConnection;
+use diesel::prelude::*;
+use diesel::sql_query;
 
 #[get("/")]
-async fn get() -> impl Responder {
+async fn get(db: MysqlConnection) -> impl Responder {
     HttpResponse::Ok().body("get ok")
 }
 #[post("/")]
@@ -19,8 +28,11 @@ async fn delete() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    let connection = establish_connection();
+
     HttpServer::new(|| {
         App::new()
+            .app_data(connection.clone())
             .service(get)
             .service(post)
             .service(put)
